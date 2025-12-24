@@ -1,11 +1,7 @@
 {
   nixConfig = {
-    extra-trusted-substituters = [
-      "https://cache.flox.dev"
-    ];
-    extra-trusted-public-keys = [
-      "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
-    ];
+    extra-trusted-substituters = [ "https://cache.flox.dev" ];
+    extra-trusted-public-keys = [ "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs=" ];
   };
 
   description = "Haskell bindings to NVIDIA Tools Extension (NVTX)";
@@ -33,11 +29,15 @@
 
       flake = {
         overlays.default = final: prev: {
-          haskellPackages = prev.haskell.packages.ghc98.override {
-            overrides = hfinal: hprev: {
-              hsnvtx = hfinal.callCabal2nix "hsnvtx" ./. {
-                nvToolsExt = final.cudaPackages.cuda_nvtx;
-              };
+          haskell = prev.haskell // {
+            packages = prev.haskell.packages // {
+              ghc98 = prev.haskell.packages.ghc98.extend (
+                (hfinal: hprev: {
+                  hsnvtx = hfinal.callCabal2nix "hsnvtx" ./. {
+                    nvToolsExt = final.cudaPackages.cuda_nvtx;
+                  };
+                })
+              );
             };
           };
         };
