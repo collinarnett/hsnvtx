@@ -35,58 +35,57 @@
 -- @
 -- nsys profile --sample=cpu --trace=cuda,nvtx,osrt --cudabacktrace=all ./MyProgram
 -- @
-
 module NVTX
   ( -- * Simple Range API (Push/Pop)
-    withRange
-  , withRangeColor
-  , withRangeAttribs
-  , pushRange
-  , popRange
+    withRange,
+    withRangeColor,
+    withRangeAttribs,
+    pushRange,
+    popRange,
 
     -- * Start/End Range API (Non-nested, Cross-thread)
-  , RangeId
-  , startRange
-  , startRangeAttribs
-  , endRange
-  , withStartEndRange
+    RangeId,
+    startRange,
+    startRangeAttribs,
+    endRange,
+    withStartEndRange,
 
     -- * Markers (Instantaneous Events)
-  , mark
-  , markAttribs
+    mark,
+    markAttribs,
 
     -- * Event Attributes
-  , EventAttribs(..)
-  , defaultAttribs
-  , Color(..)
-  , argb
-  , rgb
-  , CategoryId(..)
-  , Payload(..)
+    EventAttribs (..),
+    defaultAttribs,
+    Color (..),
+    argb,
+    rgb,
+    CategoryId (..),
+    Payload (..),
 
     -- * Resource Naming
-  , nameThread
-  , nameCategory
+    nameThread,
+    nameCategory,
 
     -- * Domain API (NVTX3)
-  , Domain
-  , createDomain
-  , destroyDomain
-  , withDomain
-  , domainRangePush
-  , domainRangePop
-  , withDomainRange
-  , domainMark
-  ) where
-
-import NVTX.Raw
-import NVTX.Types
+    Domain,
+    createDomain,
+    destroyDomain,
+    withDomain,
+    domainRangePush,
+    domainRangePop,
+    withDomainRange,
+    domainMark,
+  )
+where
 
 import Control.Exception (bracket, bracket_, finally, mask_)
 import Control.Monad (void)
 import Data.Word (Word32, Word64)
 import Foreign.C.String (withCString)
 import Foreign.C.Types (CInt)
+import NVTX.Raw
+import NVTX.Types
 
 -- | Execute an action within a named NVTX range using push/pop semantics.
 -- The range will be properly closed even if an exception is thrown.
@@ -107,7 +106,7 @@ withRange label action =
 -- @
 withRangeColor :: String -> Color -> IO a -> IO a
 withRangeColor label color action =
-  withRangeAttribs (defaultAttribs { attribMessage = Just label, attribColor = Just color }) action
+  withRangeAttribs (defaultAttribs {attribMessage = Just label, attribColor = Just color}) action
 
 -- | Execute an action within an NVTX range with full attribute control.
 withRangeAttribs :: EventAttribs -> IO a -> IO a
@@ -129,7 +128,7 @@ popRange = c_nvtxRangePop
 
 -- | A unique identifier for a start/end range.
 -- Unlike push/pop ranges, start/end ranges can span threads.
-newtype RangeId = RangeId { unRangeId :: Word64 }
+newtype RangeId = RangeId {unRangeId :: Word64}
   deriving stock (Show, Eq)
   deriving newtype (Ord)
 
@@ -191,14 +190,15 @@ destroyDomain = c_nvtxDomainDestroy
 
 -- | Execute an action with a domain, destroying it afterwards.
 withDomain :: String -> (Domain -> IO a) -> IO a
-withDomain name action = bracket
-  (createDomain name >>= maybe (error $ "Failed to create domain: " ++ name) return)
-  destroyDomain
-  action
+withDomain name action =
+  bracket
+    (createDomain name >>= maybe (error $ "Failed to create domain: " ++ name) return)
+    destroyDomain
+    action
 
 -- | Push a range in a specific domain.
 domainRangePush :: Domain -> EventAttribs -> IO CInt
-domainRangePush domain attribs = 
+domainRangePush domain attribs =
   withEventAttribs attribs $ \ptr -> c_nvtxDomainRangePushEx domain ptr
 
 -- | Pop a range in a specific domain.

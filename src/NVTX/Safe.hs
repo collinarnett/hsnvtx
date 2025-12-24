@@ -22,23 +22,23 @@
 --     cpp-options: -DNVTX_ENABLED
 --     extra-libraries: nvToolsExt
 -- @
-
 module NVTX.Safe
   ( -- * Range API
-    withRange
-  , withRangeColor
-  , pushRange
-  , popRange
+    withRange,
+    withRangeColor,
+    pushRange,
+    popRange,
 
     -- * Markers
-  , mark
+    mark,
 
     -- * Resource Naming
-  , nameThread
+    nameThread,
 
     -- * Compile-time check
-  , nvtxEnabled
-  ) where
+    nvtxEnabled,
+  )
+where
 
 #ifdef NVTX_ENABLED
 import qualified NVTX

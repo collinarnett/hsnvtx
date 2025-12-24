@@ -20,44 +20,43 @@
 --   withRangeE nvtx "MyOperation" $ do
 --     -- your code here
 -- @
-
 module NVTX.Eff
   ( -- * NVTX Effect
-    NvtxE
-  , withNvtxE
-  , runNvtxIO
+    NvtxE,
+    withNvtxE,
+    runNvtxIO,
 
-    -- * Range Operations  
-  , withRangeE
-  , withRangeColorE
-  , pushRangeE
-  , popRangeE
+    -- * Range Operations
+    withRangeE,
+    withRangeColorE,
+    pushRangeE,
+    popRangeE,
 
     -- * Markers
-  , markE
+    markE,
 
     -- * Resource Naming
-  , nameThreadE
-  , nameCategoryE
+    nameThreadE,
+    nameCategoryE,
 
     -- * Re-exports
-  , Color
-  , rgb
-  , argb
-  , CategoryId(..)
-  , colorRed
-  , colorGreen
-  , colorBlue
-  , colorYellow
-  ) where
+    Color,
+    rgb,
+    argb,
+    CategoryId (..),
+    colorRed,
+    colorGreen,
+    colorBlue,
+    colorYellow,
+  )
+where
 
-import NVTX.Types
-import NVTX.Raw (c_nvtxRangePushEx)
-import qualified NVTX
-
-import Control.Monad.IO.Class (MonadIO(..))
+import Control.Monad.IO.Class (MonadIO (..))
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Foreign.C.Types (CInt)
+import NVTX qualified
+import NVTX.Raw (c_nvtxRangePushEx)
+import NVTX.Types
 
 -- | The NVTX effect handle.
 -- This is a simple wrapper that allows NVTX operations in effectful code.
@@ -66,7 +65,7 @@ newtype NvtxE = NvtxE ()
 -- | Run NVTX operations with an effect handle.
 -- This just provides a handle; NVTX functions are always available when
 -- the library is linked.
-withNvtxE :: MonadIO m => (NvtxE -> m a) -> m a
+withNvtxE :: (MonadIO m) => (NvtxE -> m a) -> m a
 withNvtxE f = f (NvtxE ())
 
 -- | Run NVTX operations directly in IO.
@@ -74,7 +73,7 @@ runNvtxIO :: (NvtxE -> IO a) -> IO a
 runNvtxIO = withNvtxE
 
 -- | Execute an action within a named range (effect-based version).
-withRangeE :: MonadIO m => NvtxE -> String -> m a -> m a
+withRangeE :: (MonadIO m) => NvtxE -> String -> m a -> m a
 withRangeE _ label action = do
   _ <- liftIO $ NVTX.pushRange label
   result <- action
@@ -82,32 +81,36 @@ withRangeE _ label action = do
   pure result
 
 -- | Execute an action within a colored range (effect-based version).
-withRangeColorE :: MonadIO m => NvtxE -> String -> Color -> m a -> m a
+withRangeColorE :: (MonadIO m) => NvtxE -> String -> Color -> m a -> m a
 withRangeColorE _ label color action = do
-  liftIO $ withEventAttribs (defaultAttribs 
-    { attribMessage = Just label
-    , attribColor = Just color
-    }) c_nvtxRangePushEx
+  liftIO $
+    withEventAttribs
+      ( defaultAttribs
+          { attribMessage = Just label,
+            attribColor = Just color
+          }
+      )
+      c_nvtxRangePushEx
   result <- action
   _ <- liftIO NVTX.popRange
   pure result
 
 -- | Push a range onto the stack (effect-based version).
-pushRangeE :: MonadIO m => NvtxE -> String -> m CInt
+pushRangeE :: (MonadIO m) => NvtxE -> String -> m CInt
 pushRangeE _ label = liftIO $ NVTX.pushRange label
 
 -- | Pop a range from the stack (effect-based version).
-popRangeE :: MonadIO m => NvtxE -> m CInt
+popRangeE :: (MonadIO m) => NvtxE -> m CInt
 popRangeE _ = liftIO NVTX.popRange
 
 -- | Create a marker (effect-based version).
-markE :: MonadIO m => NvtxE -> String -> m ()
+markE :: (MonadIO m) => NvtxE -> String -> m ()
 markE _ label = liftIO $ NVTX.mark label
 
 -- | Name the current thread (effect-based version).
-nameThreadE :: MonadIO m => NvtxE -> String -> m ()
+nameThreadE :: (MonadIO m) => NvtxE -> String -> m ()
 nameThreadE _ name = liftIO $ NVTX.nameThread name
 
 -- | Name a category (effect-based version).
-nameCategoryE :: MonadIO m => NvtxE -> CategoryId -> String -> m ()
+nameCategoryE :: (MonadIO m) => NvtxE -> CategoryId -> String -> m ()
 nameCategoryE _ cid name = liftIO $ NVTX.nameCategory cid name

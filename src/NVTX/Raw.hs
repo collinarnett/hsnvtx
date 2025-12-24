@@ -10,42 +10,42 @@
 -- high-level API in "NVTX" instead.
 --
 -- Link with @-lnvToolsExt@ or include the NVTX3 headers (header-only in v3).
-
 module NVTX.Raw
   ( -- * Markers
-    c_nvtxMarkA
-  , c_nvtxMarkEx
+    c_nvtxMarkA,
+    c_nvtxMarkEx,
 
     -- * Push/Pop Ranges
-  , c_nvtxRangePushA
-  , c_nvtxRangePushEx
-  , c_nvtxRangePop
+    c_nvtxRangePushA,
+    c_nvtxRangePushEx,
+    c_nvtxRangePop,
 
     -- * Start/End Ranges
-  , c_nvtxRangeStartA
-  , c_nvtxRangeStartEx
-  , c_nvtxRangeEnd
+    c_nvtxRangeStartA,
+    c_nvtxRangeStartEx,
+    c_nvtxRangeEnd,
 
     -- * Resource Naming
-  , c_nvtxNameOsThreadA
-  , c_nvtxNameCategoryA
+    c_nvtxNameOsThreadA,
+    c_nvtxNameCategoryA,
 
     -- * Domain API (NVTX3)
-  , Domain
-  , nullDomain
-  , c_nvtxDomainCreateA
-  , c_nvtxDomainDestroy
-  , c_nvtxDomainRangePushEx
-  , c_nvtxDomainRangePop
-  , c_nvtxDomainMarkEx
+    Domain,
+    nullDomain,
+    c_nvtxDomainCreateA,
+    c_nvtxDomainDestroy,
+    c_nvtxDomainRangePushEx,
+    c_nvtxDomainRangePop,
+    c_nvtxDomainMarkEx,
 
     -- * Thread ID
-  , getCurrentThreadId
-  ) where
+    getCurrentThreadId,
+  )
+where
 
 import Data.Word (Word32, Word64)
 import Foreign.C.String (CString)
-import Foreign.C.Types (CInt(..), CULong(..))
+import Foreign.C.Types (CInt (..), CULong (..))
 import Foreign.Ptr (Ptr, nullPtr)
 
 -- | Get current thread ID via pthread_self

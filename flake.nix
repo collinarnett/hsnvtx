@@ -18,7 +18,14 @@
     git-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-parts, git-hooks-nix, ... }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      flake-parts,
+      git-hooks-nix,
+      ...
+    }:
     flake-parts.lib.mkFlake { inherit inputs; } {
 
       imports = [ inputs.git-hooks-nix.flakeModule ];
@@ -36,42 +43,49 @@
         };
       };
 
-      perSystem = { config, system, pkgs, lib, ... }: {
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          config.cudaSupport = true;
-          config.allowUnfree = true;
-        };
+      perSystem =
+        {
+          config,
+          system,
+          pkgs,
+          lib,
+          ...
+        }:
+        {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            config.cudaSupport = true;
+            config.allowUnfree = true;
+          };
 
-        pre-commit.settings.hooks = {
-          ruff-format.enable = true;
-          nixfmt-rfc-style.enable = true;
-          cabal-fmt.enable = true;
-          ormolu.enable = true;
-        };
+          pre-commit.settings.hooks = {
+            nixfmt-rfc-style.enable = true;
+            cabal-fmt.enable = true;
+            ormolu.enable = true;
+          };
 
-        devShells.default = pkgs.haskell.packages.ghc98.shellFor {
-          packages = ps:
-            [
+          devShells.default = pkgs.haskell.packages.ghc98.shellFor {
+            shellHook = ''
+              ${config.pre-commit.shellHook}
+            '';
+            packages = ps: [
               (ps.callCabal2nix "hsnvtx" ./. {
                 nvToolsExt = pkgs.cudaPackages.cuda_nvtx;
               })
             ];
 
-            nativeBuildInputs =
-              with pkgs;
-              [
-                # Debugging
-                gdb
-                nvtopPackages.nvidia
-                cudaPackages.nsight_systems
-                # Haskell
-                cabal-install
-                haskellPackages.cabal-fmt
-                haskell.packages.ghc98.haskell-language-server
-                ormolu
-              ];
+            nativeBuildInputs = with pkgs; [
+              # Debugging
+              gdb
+              nvtopPackages.nvidia
+              cudaPackages.nsight_systems
+              # Haskell
+              cabal-install
+              haskellPackages.cabal-fmt
+              haskell.packages.ghc98.haskell-language-server
+              ormolu
+            ];
+          };
         };
-      };
     };
 }

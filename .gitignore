@@ -30,3 +30,6 @@ result
 # nvtx
 nvtx-test-profile.nsys-rep
 nvtx-test-profile.sqlite
+
+# pre-commit
+.pre-commit-config.yaml
