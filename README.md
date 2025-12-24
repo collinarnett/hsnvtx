@@ -1,6 +1,6 @@
 # nvtx-hs
 
-:caution: 100% Vibe Coded. Use at your own risk. :caution:
+:warning: 100% Vibe Coded. Use at your own risk. :warning:
 
 Haskell bindings to [NVIDIA Tools Extension (NVTX)](https://docs.nvidia.com/nsight-visual-studio-edition/nvtx/index.html) for profiling GPU applications with Nsight Systems.
 
