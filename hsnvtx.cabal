@@ -1,0 +1,103 @@
+cabal-version:      3.0
+name:               hsnvtx
+version:            0.1.0.0
+synopsis:           Haskell bindings to NVIDIA Tools Extension (NVTX)
+description:
+  This package provides Haskell bindings to NVTX for annotating code regions
+  in GPU profilers like nsys (Nsight Systems).
+  .
+  NVTX allows you to add named ranges and markers to your code that show up
+  in profiling tools, making it much easier to understand where time is spent
+  in complex GPU applications.
+  .
+  Basic usage:
+  .
+  @
+  import NVTX
+  
+  main :: IO ()
+  main = do
+    withRange "Main" $ do
+      withRange "Forward Pass" $ do
+        forwardPass
+      withRange "Backward Pass" $ do
+        backwardPass
+  @
+  .
+  Then profile with:
+  .
+  @
+  nsys profile --sample=cpu --trace=cuda,nvtx,osrt ./myprogram
+  @
+
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Collin Arnett
+maintainer:         collin@arnett.it
+category:           GPU, Profiling, FFI
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.8.6
+
+source-repository head
+  type:     git
+  location: https://github.com/collinarnett/hsnvtx.git
+
+flag nvtx
+  description: Enable NVTX support (disable for systems without NVIDIA tools)
+  default:     True
+  manual:      True
+
+common warnings
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates
+               -Wincomplete-uni-patterns -Wmissing-home-modules
+               -Wpartial-fields -Wredundant-constraints
+
+library
+  import:           warnings
+  exposed-modules:
+    NVTX
+    NVTX.Eff
+    NVTX.Raw
+    NVTX.Safe
+    NVTX.Types
+
+  build-depends:
+    , base >= 4.16 && < 5
+
+  if os(windows)
+    build-depends: Win32 >= 2.6
+  else
+    build-depends: unix >= 2.7
+
+  hs-source-dirs:   src
+  default-language: GHC2021
+  default-extensions:
+    ImportQualifiedPost
+    LambdaCase
+    OverloadedStrings
+
+  if flag(nvtx)
+    cpp-options: -DNVTX_ENABLED
+    extra-libraries: nvToolsExt
+    -- On some systems, you may need to specify the library path:
+    -- extra-lib-dirs: /usr/local/cuda/lib64
+    -- include-dirs: /usr/local/cuda/include
+  else
+    -- When nvtx flag is disabled, Safe module functions become no-ops
+    cpp-options: -DNVTX_DISABLED
+
+test-suite nvtx-test
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  build-depends:
+    , base >= 4.16 && < 5
+    , hsnvtx
+
+  default-language: GHC2021
+
+  if flag(nvtx)
+    cpp-options: -DNVTX_ENABLED
+    extra-libraries: nvToolsExt
